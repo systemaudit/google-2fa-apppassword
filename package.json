@@ -1,0 +1,53 @@
+{
+  "name": "google-2fa-generator",
+  "version": "1.0.0",
+  "description": "Automated Google 2FA and App Password Generator",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "google",
+    "2fa",
+    "two-factor-authentication", 
+    "authenticator",
+    "app-password",
+    "automation",
+    "playwright",
+    "bot"
+  ],
+  "author": "@xystemaudit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xystemaudit/google-2fa-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xystemaudit/google-2fa-generator/issues"
+  },
+  "homepage": "https://github.com/xystemaudit/google-2fa-generator#readme",
+  "dependencies": {
+    "playwright": "^1.40.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "dotenv": "^16.3.1",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "p-limit": "^3.1.0",
+    "speakeasy": "^2.0.0",
+    "axios": "^1.6.0",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  }
+}
