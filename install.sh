@@ -2,9 +2,7 @@
 
 # Google 2FA App Password Generator Installer
 # Author: @systemaudit
-# Updated with automatic Node.js installation
-
-set -e
+# Updated with automatic Node.js installation and better error handling
 
 # Colors
 RED='\033[0;31m'
@@ -26,6 +24,17 @@ echo " Google 2FA App Password Generator"
 echo " Auto Installer for Linux/VPS"
 echo "=========================================="
 echo -e "${NC}"
+
+# Function to check if running as root
+check_root() {
+    if [ "$EUID" -eq 0 ]; then 
+        echo -e "${YELLOW}Running as root${NC}"
+        SUDO=""
+    else
+        echo -e "${YELLOW}Running as regular user${NC}"
+        SUDO="sudo"
+    fi
+}
 
 # Function to compare versions
 version_compare() {
@@ -51,6 +60,9 @@ version_compare() {
     return 0
 }
 
+# Check root
+check_root
+
 # Detect OS
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -65,15 +77,18 @@ echo -e "${BLUE}Detected OS: $OS $OS_VERSION${NC}"
 
 # Update package list
 echo -e "${YELLOW}Updating package list...${NC}"
-sudo apt update -y >/dev/null 2>&1 || apt update -y >/dev/null 2>&1
+$SUDO apt update -y 2>&1 | grep -E "packages|upgraded|newly" || echo -e "${GREEN}✓ Package list updated${NC}"
 
 # Install essential packages
 echo -e "${YELLOW}Installing essential packages...${NC}"
-if command -v sudo &> /dev/null; then
-    sudo apt install -y curl git wget >/dev/null 2>&1
-else
-    apt install -y curl git wget >/dev/null 2>&1
-fi
+PACKAGES="curl git wget ca-certificates gnupg"
+for pkg in $PACKAGES; do
+    if ! command -v $pkg &> /dev/null; then
+        echo -e "  Installing $pkg..."
+        $SUDO apt install -y $pkg 2>&1 | tail -n 1
+    fi
+done
+echo -e "${GREEN}✓ Essential packages installed${NC}"
 
 # Check Node.js
 echo -e "${YELLOW}Checking Node.js...${NC}"
@@ -99,37 +114,33 @@ if [ "$INSTALL_NODE" = true ]; then
     echo -e "${YELLOW}Installing Node.js $NODE_VERSION...${NC}"
     
     # Remove old Node.js
-    if command -v sudo &> /dev/null; then
-        sudo apt remove -y nodejs npm >/dev/null 2>&1 || true
-    else
-        apt remove -y nodejs npm >/dev/null 2>&1 || true
-    fi
+    echo -e "  Removing old Node.js..."
+    $SUDO apt remove -y nodejs npm 2>/dev/null || true
+    $SUDO apt autoremove -y 2>/dev/null || true
     
     # Install Node.js from NodeSource
-    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | sudo -E bash - >/dev/null 2>&1 || \
-    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - >/dev/null 2>&1
+    echo -e "  Adding NodeSource repository..."
+    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x -o nodesource_setup.sh
+    $SUDO bash nodesource_setup.sh
+    rm nodesource_setup.sh
     
-    if command -v sudo &> /dev/null; then
-        sudo apt install -y nodejs >/dev/null 2>&1
-    else
-        apt install -y nodejs >/dev/null 2>&1
-    fi
+    echo -e "  Installing Node.js..."
+    $SUDO apt install -y nodejs
     
     # Verify installation
     if command -v node &> /dev/null; then
         echo -e "${GREEN}✓ Node.js $(node -v) installed successfully${NC}"
         echo -e "${GREEN}✓ npm $(npm -v) installed successfully${NC}"
     else
-        echo -e "${RED}Failed to install Node.js. Trying alternative method...${NC}"
-        
-        # Alternative: Install using NVM
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        nvm install $NODE_VERSION
-        nvm use $NODE_VERSION
-        nvm alias default $NODE_VERSION
+        echo -e "${RED}Failed to install Node.js.${NC}"
+        exit 1
     fi
+fi
+
+# Check npm
+if ! command -v npm &> /dev/null; then
+    echo -e "${RED}npm not found. Installing...${NC}"
+    $SUDO apt install -y npm
 fi
 
 # Clone or update repository
@@ -138,8 +149,8 @@ echo -e "${YELLOW}Setting up Google 2FA App Password Generator...${NC}"
 if [ -d "$INSTALL_DIR" ]; then
     echo -e "${YELLOW}Directory exists. Updating...${NC}"
     cd "$INSTALL_DIR"
-    git reset --hard HEAD >/dev/null 2>&1
-    git pull origin main >/dev/null 2>&1 || git pull origin master >/dev/null 2>&1
+    git reset --hard HEAD
+    git pull origin main || git pull origin master
 else
     echo -e "${YELLOW}Cloning repository...${NC}"
     git clone https://github.com/systemaudit/google-2fa-apppassword.git "$INSTALL_DIR"
@@ -148,18 +159,14 @@ fi
 
 # Install dependencies
 echo -e "${YELLOW}Installing Node.js dependencies...${NC}"
-npm install >/dev/null 2>&1
+npm install
 
 # Install Playwright and its dependencies
 echo -e "${YELLOW}Installing Playwright...${NC}"
-npx playwright install chromium >/dev/null 2>&1
+npx playwright install chromium
 
 echo -e "${YELLOW}Installing system dependencies for Chromium...${NC}"
-if command -v sudo &> /dev/null; then
-    sudo npx playwright install-deps chromium >/dev/null 2>&1 || npx playwright install-deps chromium >/dev/null 2>&1
-else
-    npx playwright install-deps chromium >/dev/null 2>&1
-fi
+$SUDO npx playwright install-deps chromium || npx playwright install-deps chromium
 
 # Create required directories
 echo -e "${YELLOW}Creating directories...${NC}"
@@ -167,9 +174,8 @@ mkdir -p logs output
 
 # Setup environment file
 if [ ! -f .env ]; then
-    cp .env.example .env 2>/dev/null || {
-        echo -e "${YELLOW}Creating .env file...${NC}"
-        cat > .env << EOF
+    echo -e "${YELLOW}Creating .env file...${NC}"
+    cat > .env << 'EOF'
 # Browser Settings
 HEADLESS=true
 DEBUG_MODE=false
@@ -190,7 +196,6 @@ TOTP_API_URL=https://2fa.live/tok
 OUTPUT_FORMAT=csv
 OUTPUT_PATH=output/results.csv
 EOF
-    }
     echo -e "${GREEN}✓ Created .env file${NC}"
 fi
 
