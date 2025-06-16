@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  google2fa:
+    build: .
+    container_name: google-2fa-generator
+    environment:
+      - HEADLESS=true
+      - DEBUG_MODE=false
+      - TOTP_API_URL=https://2fa.live/tok
+      - NAVIGATION_TIMEOUT=10000
+      - IMPLICIT_TIMEOUT=3000
+      - OUTPUT_FORMAT=csv
+      - OUTPUT_PATH=output/results.csv
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
