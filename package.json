@@ -18,16 +18,16 @@
     "playwright",
     "bot"
   ],
-  "author": "@xystemaudit",
+  "author": "@systemaudit",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xystemaudit/google-2fa-apppassword.git"
+    "url": "https://github.com/systemaudit/google-2fa-apppassword.git"
   },
   "bugs": {
-    "url": "https://github.com/xystemaudit/google-2fa-apppassword/issues"
+    "url": "https://github.com/systemaudit/google-2fa-apppassword/issues"
   },
-  "homepage": "https://github.com/xystemaudit/google-2fa-apppassword#readme",
+  "homepage": "https://github.com/systemaudit/google-2fa-apppassword#readme",
   "dependencies": {
     "playwright": "^1.40.0",
     "playwright-extra": "^4.3.6",
