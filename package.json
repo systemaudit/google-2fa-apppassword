@@ -1,5 +1,5 @@
 {
-  "name": "google-2fa-generator",
+  "name": "google-2fa-apppassword",
   "version": "1.0.0",
   "description": "Automated Google 2FA and App Password Generator",
   "main": "src/index.js",
@@ -22,12 +22,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xystemaudit/google-2fa-generator.git"
+    "url": "https://github.com/xystemaudit/google-2fa-apppassword.git"
   },
   "bugs": {
-    "url": "https://github.com/xystemaudit/google-2fa-generator/issues"
+    "url": "https://github.com/xystemaudit/google-2fa-apppassword/issues"
   },
-  "homepage": "https://github.com/xystemaudit/google-2fa-generator#readme",
+  "homepage": "https://github.com/xystemaudit/google-2fa-apppassword#readme",
   "dependencies": {
     "playwright": "^1.40.0",
     "playwright-extra": "^4.3.6",
